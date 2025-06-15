@@ -242,5 +242,3 @@ This documentation was fully written and optimized using [ChatGPT](https://opena
 Future updates or new modules can also be described and generated through ChatGPT.
 
 ---
-
-若你希望我直接幫你輸出為 `README.md` 檔案內容格式，請告訴我，我可以一次匯出完整檔案文字。
