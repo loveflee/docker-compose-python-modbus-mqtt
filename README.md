@@ -29,10 +29,8 @@
 ### 1️⃣ 安裝 Python 套件（於 Docker 內部執行）
 
 ```bash
-docker compose run python:3.11-slim
-pip install -r requirements.txt
-# 或手動安裝：
-pip install paho-mqtt==2.1.0 pymodbus==3.5.0
+docker compose build;
+docker compose up -d
 ```
 
 ### 2️⃣ 啟動服務
@@ -40,7 +38,10 @@ pip install paho-mqtt==2.1.0 pymodbus==3.5.0
 ```bash
 docker compose up -d
 ```
-
+see docker log
+```bash
+docker compose logs
+```
 ---
 
 ## 📁 專案結構
@@ -149,16 +150,18 @@ Currently supported modules:
 ### 1️⃣ Install Python packages (inside container)
 
 ```bash
-docker compose run python:3.11-slim
-pip install -r requirements.txt
-# Or manually:
-pip install paho-mqtt==2.1.0 pymodbus==3.5.0
+docker compose build
 ```
 
 ### 2️⃣ Start the container
 
 ```bash
 docker compose up -d
+```
+see docker log
+
+```bash
+docker compose logs
 ```
 
 ---
