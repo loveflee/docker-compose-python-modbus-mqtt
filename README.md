@@ -42,8 +42,10 @@ see docker log
 ```bash
 docker compose logs
 ```
-## 啟用,停用,新增模組只需重啟容器
-## To enable, disable, or add new modules, just restart the container
+## 啟用,停用,新增 模組 只需重啟容器
+```bash
+docker compose restart
+```
 ---
 
 ## 📁 專案結構
