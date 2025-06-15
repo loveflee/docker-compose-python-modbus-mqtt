@@ -11,11 +11,9 @@ import threading
 import modbus_mqtt_client
 import module_switch
 import module_temp
-import module_waterlevel
 # 新增這行來導入 modbus_read_coils
-import modbus_read_coils
+#import modbus_read_coils
 # module_03 8dodi 監視乾接點輪巡每5秒一次修改在module_03.py time.sleep(5)
-import module_03
 
 def main():
     # ========================
@@ -29,13 +27,13 @@ def main():
     # ========================
     # 🔵 首次啟動執行一次 modbus_read_coils
     # ========================
-    print("✅ 首次執行 modbus_read_coils.py")
-    coil_status = modbus_read_coils.read_coils()
-    if coil_status:
-        modbus_read_coils.publish_coil_status(coil_status)
-        print("✅ 首次同步狀態完成，已上報MQTT！")
-    else:
-        print("⚠️ 首次讀取線圈失敗，未發佈MQTT")
+#    print("✅ 首次執行 modbus_read_coils.py")
+$    coil_status = modbus_read_coils.read_coils()
+$    if coil_status:
+$        modbus_read_coils.publish_coil_status(coil_status)
+$        print("✅ 首次同步狀態完成，已上報MQTT！")
+$    else:
+$        print("⚠️ 首次讀取線圈失敗，未發佈MQTT")
 
     # ========================
     # 🟠 建立執行緒並啟動模組
@@ -51,13 +49,6 @@ def main():
         )
         threads.append(t)
 
-    if modules["03"]["enable"]:
-        t = threading.Thread(
-            target=module_03.run,
-            args=(modules["03"]["slave_id"], modbus_mqtt_client.modbus_manager),
-            name="03Module"
-        )
-        threads.append(t)
 
     if modules["temp"]["enable"]:
         t = threading.Thread(
@@ -67,13 +58,6 @@ def main():
         )
         threads.append(t)
 
-    if modules["waterlevel"]["enable"]:
-        t = threading.Thread(
-            target=module_waterlevel.run,
-            args=(modules["waterlevel"]["slave_id"], modbus_mqtt_client.modbus_manager),
-            name="waterlevelModule"
-        )
-        threads.append(t)
 
     # ========================
     # 🔵 啟動所有模組
