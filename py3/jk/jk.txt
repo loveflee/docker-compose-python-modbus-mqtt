@@ -1,0 +1,214 @@
+在ha裡的實體id 希望是
+sensor.slave{slave_id}_jkbms
+
+"""
+📌 Switch Module 以下為 module_switch.py
+控制 Modbus Coil，透過 Home Assistant MQTT Discovery 自動註冊並與 HA 同步狀態
+"""
+
+import time
+import json
+import modbus_mqtt_client
+
+# ========================
+# 🟡 常數定義
+# ========================
+COIL_START_ADDRESS = 0          # Modbus Coil 起始位址
+COIL_COUNT = 8                  # Coil 數量（通常為 8 或自定義）
+
+COMPONENT = "switch"            # HA 元件類型（switch）
+NODE_ID = "hy01"                # 裝置節點 ID（HA 用來識別設備，例如 hy01）
+
+# ========================
+# 🟠 發佈 Home Assistant Discovery 設定
+# ========================
+def publish_discovery_config(mqtt_client, slave_id):
+    """
+    發佈每個 coil 的 HA Discovery 設定，包含 slave_id 於 topic/object_id
+    Publish Home Assistant Discovery config for each coil
+    """
+    for index in range(COIL_COUNT):
+        object_id = f"{NODE_ID}_slave{slave_id}_coil{index}"  # 實體 ID
+        topic = f"homeassistant/{COMPONENT}/{object_id}/config"  # Discovery 設定主題
+
+        config_payload = {
+            "name": f"{object_id}",  # 顯示名稱（可讀）
+            "command_topic": f"{NODE_ID}/coil/{slave_id}/{index}/set",  # HA 發送控制訊息的主題
+            "state_topic": f"{NODE_ID}/coil/{slave_id}/{index}/state",  # HA 讀取狀態的主題
+            "payload_on": "ON",         # 開的 payload
+            "payload_off": "OFF",       # 關的 payload
+            "unique_id": object_id,     # HA 唯一 ID
+            "object_id": object_id,     # HA Entity ID 中的 object_id 部分
+            "device": {
+                "identifiers": [f"{NODE_ID}_slave{slave_id}"],      # HA 裝置識別碼
+                "name": f"{NODE_ID}_slave{slave_id}",               # 顯示裝置名稱
+                "model": "Modbus Coil Controller",                  # 型號
+                "manufacturer": "YourCompany"                       # 製造商
+            }
+        }
+
+        mqtt_client.publish(topic, json.dumps(config_payload), retain=True)
+        print(f"📢 發佈 HA 設定：{topic}")
+##省略非重點		
+
+# 以下為 main.py 
+"""
+📌 主程式
+統一啟動所需的模組（switch, temp, ...）
+並統一管理 Modbus Slave ID 及 ModbusManager
+"""
+from pymodbus.server.async_io import StartTcpServer
+from pymodbus.datastore import ModbusServerContext
+import importlib
+import threading
+import modbus_mqtt_client
+import module_switch
+import module_temp
+import module_waterlevel
+# 新增這行來導入 modbus_read_coils
+import modbus_read_coils
+# module_03 8dodi 監視乾接點輪巡每5秒一次修改在module_03.py time.sleep(5)
+import module_03
+
+def main():
+    # ========================
+    # 🟡 模組啟用/停用與站號設定
+    # ========================
+    modules = {
+      "switch": {"enable": True, "slave_id": 3},
+      "03": {"enable": False, "slave_id": 3},
+      "temp": {"enable": False, "slave_id": 1},
+      "waterlevel": {"enable": False, "slave_id": 5},
+      "analog_input": {"enable": False, "slave_id": 1}
+    }
+
+    # ========================
+    # 🔵 首次啟動執行一次 modbus_read_coils
+    # ========================
+    print("✅ 首次執行 modbus_read_coils.py")
+    coil_status = modbus_read_coils.read_coils()
+    if coil_status:
+        modbus_read_coils.publish_coil_status(coil_status)
+        print("✅ 首次同步狀態完成，已上報MQTT！")
+    else:
+        print("⚠️ 首次讀取線圈失敗，未發佈MQTT")
+
+    # ========================
+    # 🟠 建立執行緒並啟動模組
+    # ========================
+    threads = []
+
+
+    if modules["switch"]["enable"]:
+        t = threading.Thread(
+            target=module_switch.run,
+            args=(modules["switch"]["slave_id"], modbus_mqtt_client.modbus_manager),
+            name="SwitchModule"
+        )
+        threads.append(t)
+
+# 省略非重點module...
+
+    # ========================
+    # 🔵 啟動所有模組
+    # ========================
+    for t in threads:
+        t.start()
+
+    # ========================
+    # 🔴 等待所有模組結束（通常常駐執行）
+    # ========================
+    for t in threads:
+        t.join()
+
+if __name__ == "__main__":
+    main()
+
+#####################分格線###########
+
+# 以下為 modbus_mqtt_client.py
+
+"""
+📌 Modbus 與 MQTT 連線管理模組
+統一管理連線資訊、建立連線物件、避免重複連線
+同時提供自動重連的功能
+"""
+
+from pymodbus.client import ModbusTcpClient
+import paho.mqtt.client as mqtt
+import threading
+import time
+
+# ==============================
+# 🟡 Modbus 參數（統一管理）
+# ==============================
+MODBUS_HOST = '192.168.88.190'
+MODBUS_PORT = 502
+
+# ==============================
+# 🟠 MQTT 參數（統一管理）
+# ==============================
+MQTT_BROKER = '192.168.88.106'
+MQTT_PORT = 1883
+MQTT_USERNAME = 'mqtt'
+MQTT_PASSWORD = 'mqtt'
+
+# ==============================
+# 🔵 Modbus 連線管理類別（單例）
+# ==============================
+class ModbusManager:
+    """
+    用來管理單一個 Modbus TCP 連線（保持連線 & 自動重連）
+    """
+    def __init__(self, host, port):
+        self.host = host
+        self.port = port
+        self.lock = threading.Lock()
+        self.client = ModbusTcpClient(host=self.host, port=self.port)
+        self._connect()
+
+    def _connect(self):
+        """
+        嘗試連接 Modbus 伺服器
+        """
+        if not self.client.is_socket_open():
+            if self.client.connect():
+                print(f"✅ Modbus 已連線: {self.host}:{self.port}")
+            else:
+                print(f"⚠️ Modbus 連線失敗: {self.host}:{self.port}")
+
+    def get_client(self):
+        """
+        提供 Modbus client 實例（保持連線）
+        """
+        with self.lock:
+            if not self.client.is_socket_open():
+                print("⚠️ Modbus 連線中斷，自動重新連線...")
+                self.client.close()
+                self.client.connect()
+            return self.client
+
+    def close(self):
+        """
+        結束連線
+        """
+        with self.lock:
+            self.client.close()
+
+# ==============================
+# 🟣 MQTT 客戶端（共用）
+# ==============================
+def get_mqtt_client():
+    """
+    建立 MQTT 客戶端（共用設定）
+    """
+    client = mqtt.Client(protocol=mqtt.MQTTv311)
+    client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
+    return client
+
+# ==============================
+# 🟤 單例管理器（外部使用）
+# ==============================
+modbus_manager = ModbusManager(MODBUS_HOST, MODBUS_PORT)
+
+#####################分格線###########
