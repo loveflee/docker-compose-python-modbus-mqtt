@@ -1,169 +1,173 @@
-以下是完善後的 GitHub `README.md` 文件，先提供 **繁體中文版本**，接著是 **英文版本**。文末附有 ChatGPT 出處說明。
+以下是為你的 GitHub 專案撰寫的 README 文件，分為中文版與英文版，內容涵蓋：
+
+* 專案說明
+* 快速啟動指南
+* 檔案結構說明
+* 模組啟用設定方式
+* 註明由 ChatGPT 生成
 
 ---
 
-## 📘 繁體中文說明
+## 🇹🇼 中文版：Modbus TCP ↔ MQTT 整合容器
 
 # docker-compose-python-modbus-mqtt
 
-本專案為使用 Python 3.11 製作的 Modbus TCP + MQTT 整合應用。
-可讀取來自 Modbus Gateway 的數據，並透過 MQTT 發佈至 Home Assistant 等平台，支援 HA Discovery 自動註冊。
+> 📦 Docker Compose 專案：Python + Modbus TCP + MQTT 整合
+> ✨ 本專案 README 由 [ChatGPT](https://openai.com/chatgpt) 自動生成與優化
 
 ---
 
-### 🐳 Docker 環境快速啟動
+## 📘 專案簡介
+
+本專案以 `docker-compose` 管理一個輕量級 Python 容器，支援透過 **Modbus TCP** 通訊從裝置讀取數據，再轉發至 **MQTT** Broker（例如 Home Assistant）
+目前支援的模組有：
+
+* `module_switch.py`：控制繼電器/開關狀態
+* `module_temp.py`：讀取溫度 
+
+---
+
+## 🚀 快速啟動
+
+### 1️⃣ 安裝 Python 套件（Docker 內部）
 
 ```bash
 docker compose run python:3.11-slim
-```
-
-安裝所需 Python 套件：
-
-```bash
+pip install -r requirements.txt
+# 或手動安裝：
 pip install paho-mqtt==2.1.0 pymodbus==3.5.0
 ```
 
----
+### 2️⃣ 啟動服務
 
-### ⚙️ 系統架構
-
-```plaintext
-[Modbus Gateway] → [Python Modbus Client] → [MQTT Broker] → [Home Assistant]
-```
-
-* 支援 Modbus TCP 功能碼 3（Holding Registers）、4（Input Registers）
-* 可同時支援多個模組（如 JKBMS、Coil 控制器、串列設備等）
-* 使用 `main.py` 啟動並集中管理模組
-
----
-
-### 📁 專案結構說明
-
-```
-app/
-├── main.py                 # 程式入口，集中載入模組
-├── modbus_mqtt_client.py   # 管理 Modbus & MQTT 連線
-├── module_jkbms.py         # JKBMS Modbus 數據讀取模組
-├── jkbms_address.py        # JKBMS 地址定義表（供 module_jkbms 使用）
-├── ... 更多模組 ...
+```bash
+docker compose up -d
 ```
 
 ---
 
-### 🔧 啟用模組設定
+## 📁 專案結構
 
-在 `main.py` 的 `modules` 設定中：
+```
+.
+├── docker-compose.yaml      # Docker Compose 配置
+├── Dockerfile               # 建立 Python 容器映像
+├── requirements.txt         # Python 套件需求
+└── app/
+    ├── main.py              # 主控制器，負責模組啟用/執行
+    ├── module_switch.py     # 開關控制模組
+    └── module_temp.py       # 溫度模組
+```
+
+---
+
+## ⚙️ 模組設定說明
+
+`app/main.py` 內的模組設定：
+slave 站號要匹配
 
 ```python
 modules = {
-    "jkbms": {
-        "enable": True,           # 啟用該模組
-        "slave_id": 3             # 設定其 Modbus 站號
-    },
-    "switch": {
-        "enable": False           # 停用該模組
-    }
+  "switch": {"enable": True, "slave_id": 3},
+  "temp":   {"enable": False, "slave_id": 1}
 }
 ```
 
----
-
-### 💡 功能特色
-
-* ✅ 支援多模組並行執行
-* ✅ Modbus 錯誤自動重連
-* ✅ MQTT 主動回報與 HA Discovery 註冊
-* ✅ 地址表可獨立定義，便於維護與擴充
+* `enable: True` → 啟用模組（自動連線 Modbus 並上報 MQTT）
+* `enable: False` → 停用該模組（不執行）
 
 ---
 
-### 📜 作者與貢獻
-
-本專案由 [ChatGPT](https://openai.com/chatgpt) 協助產出程式架構與文件說明，手動微調與測試由使用者完成。
-歡迎提 issue 或 fork 本專案擴充其他設備支援！
 
 ---
 
-## 📘 English Description
+## 🧠 本專案由 ChatGPT 協助撰寫與優化
+
+你可以放心使用此 README，未來亦可請 ChatGPT 協助擴充模組。
+
+---
+
+## 🇺🇸 English Version
 
 # docker-compose-python-modbus-mqtt
 
-This project integrates **Modbus TCP and MQTT** using Python 3.11, designed to read data from Modbus gateways and publish them via MQTT for platforms like Home Assistant. MQTT Discovery is supported for automatic entity creation.
+> 📦 Docker Compose Project: Python + Modbus TCP + MQTT
+> ✨ README generated and optimized by [ChatGPT](https://openai.com/chatgpt)
 
 ---
 
-### 🐳 Quick Start with Docker
+## 📘 Introduction
+
+This project runs a lightweight Python container using `docker-compose`, enabling data acquisition from Modbus TCP devices and publishing to an MQTT broker (such as Home Assistant).
+
+Currently supported modules:
+
+* `module_switch.py`: Switch / relay control
+* `module_temp.py`: Temperature reading
+
+---
+
+## 🚀 Quick Start
+
+### 1️⃣ Install Python packages (inside container)
 
 ```bash
 docker compose run python:3.11-slim
-```
-
-Install required dependencies:
-
-```bash
+pip install -r requirements.txt
+# Or manually:
 pip install paho-mqtt==2.1.0 pymodbus==3.5.0
 ```
 
----
+### 2️⃣ Launch the container
 
-### ⚙️ System Architecture
-
-```plaintext
-[Modbus Gateway] → [Python Modbus Client] → [MQTT Broker] → [Home Assistant]
-```
-
-* Supports Modbus Function Codes 3 and 4
-* Multi-module supported (JKBMS, coil controller, serial sensors...)
-* Modules are managed and launched via `main.py`
-
----
-
-### 📁 Project Structure
-
-```
-app/
-├── main.py                 # Entry point
-├── modbus_mqtt_client.py   # Modbus + MQTT connection manager
-├── module_jkbms.py         # JKBMS Modbus data reader
-├── jkbms_address.py        # Address definitions for JKBMS
-├── ... more modules ...
+```bash
+docker compose up -d
 ```
 
 ---
 
-### 🔧 Enable Modules
+## 📁 Project Structure
 
-Inside `main.py`:
+```
+.
+├── docker-compose.yaml      # Docker Compose configuration
+├── Dockerfile               # Dockerfile for the Python image
+├── requirements.txt         # Required Python packages
+└── app/
+    ├── main.py              # Main controller, loads modules
+    ├── module_switch.py     # Switch control module
+    └── module_temp.py       # Temperature module (disabled)
+```
+
+---
+
+## ⚙️ Module Configuration
+
+In `app/main.py`, the module control section:
+slave: yourdevice number
 
 ```python
 modules = {
-    "jkbms": {
-        "enable": True,          # Enable this module
-        "slave_id": 3
-    },
-    "switch": {
-        "enable": False          # Disable this module
-    }
+  "switch": {"enable": True, "slave_id": 3},
+  "temp":   {"enable": False, "slave_id": 1}
 }
 ```
 
----
-
-### 💡 Features
-
-* ✅ Modular architecture with threading
-* ✅ Automatic Modbus reconnect
-* ✅ MQTT + Home Assistant Discovery support
-* ✅ Easy-to-extend address list
+* `enable: True` → Enable the module (reads Modbus and publishes via MQTT)
+* `enable: False` → Disable the module
 
 ---
 
-### 📜 Author & Credits
+## ❗ Note
 
-This project was generated with the assistance of [ChatGPT](https://openai.com/chatgpt) by OpenAI, including the code structure and documentation.
-Final logic, testing, and deployment were managed manually by the user.
-Feel free to fork and contribute new modules!
 
 ---
 
-需要我幫你自動上傳 `README.md` 到 GitHub repo 嗎？或者協助製作 `docker-compose.yml`？隨時告訴我。
+## 🧠 README generated by ChatGPT
+
+This document was written and refined using ChatGPT to assist with clarity and formatting.
+
+---
+
+是否需要我幫你直接生成 `README.md` 檔案？或者補上 `JKBMS` 模組完成後再更新？
+
