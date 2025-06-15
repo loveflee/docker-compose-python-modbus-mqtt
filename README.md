@@ -144,7 +144,7 @@ docker compose up -d
 ## ⚙️ Module Configuration
 
 In `app/main.py`, the module control section:
-slave: yourdevice number
+slave: your devicenumber
 
 ```python
 modules = {
@@ -168,6 +168,4 @@ modules = {
 This document was written and refined using ChatGPT to assist with clarity and formatting.
 
 ---
-
-是否需要我幫你直接生成 `README.md` 檔案？或者補上 `JKBMS` 模組完成後再更新？
 
