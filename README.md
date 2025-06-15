@@ -1,10 +1,5 @@
-以下是為你的 GitHub 專案撰寫的 README 文件，分為中文版與英文版，內容涵蓋：
 
-* 專案說明
-* 快速啟動指南
-* 檔案結構說明
-* 模組啟用設定方式
-* 註明由 ChatGPT 生成
+* ChatGPT 協助說明
 
 ---
 
@@ -19,17 +14,19 @@
 
 ## 📘 專案簡介
 
-本專案以 `docker-compose` 管理一個輕量級 Python 容器，支援透過 **Modbus TCP** 通訊從裝置讀取數據，再轉發至 **MQTT** Broker（例如 Home Assistant）
-目前支援的模組有：
+本專案透過 `docker-compose` 建立一個輕量級 Python 環境，能從 Modbus TCP 裝置讀取資料，並轉發至 MQTT Broker（例如 Home Assistant）。
+適合整合工控設備、自動化場景與智慧家庭。
 
-* `module_switch.py`：控制繼電器/開關狀態
-* `module_temp.py`：讀取溫度 
+目前支援模組：
+
+* `module_switch.py`：控制繼電器 / 開關狀態
+* `module_temp.py`：讀取溫度
 
 ---
 
 ## 🚀 快速啟動
 
-### 1️⃣ 安裝 Python 套件（Docker 內部）
+### 1️⃣ 安裝 Python 套件（於 Docker 內部執行）
 
 ```bash
 docker compose run python:3.11-slim
@@ -56,15 +53,15 @@ docker compose up -d
 └── app/
     ├── main.py              # 主控制器，負責模組啟用/執行
     ├── module_switch.py     # 開關控制模組
-    └── module_temp.py       # 溫度模組
+    ├── module_temp.py       # 溫度模組
+    └── modbus_mqtt_client.py# Modbus 與 MQTT 客戶端管理
 ```
 
 ---
 
-## ⚙️ 模組設定說明
+## ⚙️ 模組設定說明（`main.py`）
 
-`app/main.py` 內的模組設定：
-slave 站號要匹配
+你可以透過 `main.py` 啟用或停用模組，並設定各自的 Modbus 站號：
 
 ```python
 modules = {
@@ -73,37 +70,77 @@ modules = {
 }
 ```
 
-* `enable: True` → 啟用模組（自動連線 Modbus 並上報 MQTT）
-* `enable: False` → 停用該模組（不執行）
+* `enable: True` → 啟用模組（會與指定的站號連線並回報 MQTT）
+* `enable: False` → 停用模組
+* `slave_id` → 需與你實際設備的 **Modbus 站號一致**
 
 ---
+
+## 🔌 `modbus_mqtt_client.py` 使用說明
+
+### 📌 檔案功能：
+
+* 管理 **Modbus TCP** 與 **MQTT** 的共用連線
+* 支援自動重連、鎖定防止重複操作
+* 提供共用的 MQTT 客戶端與 Modbus 實例供模組呼叫
+
+### 🔧 MQTT 參數設定（請依你自己的 Home Assistant 設定）
+
+```python
+# MQTT Broker 應設為安裝 Home Assistant 中的 Mosquitto broker 插件
+MQTT_BROKER = '填入你的 Home Assistant IP'
+MQTT_PORT = 1883
+MQTT_USERNAME = 'mqtt'
+MQTT_PASSWORD = 'mqtt'
+```
+
+### 🔧 Modbus 設定
+
+```python
+MODBUS_HOST = '你的 Modbus Gateway IP'
+MODBUS_PORT = 502
+```
+
+> ✅ MQTT & Modbus 的連線資訊皆集中在此檔，便於統一管理與修改。
+
+---
+
+## ❗ 注意事項
+
+* **MQTT Broker** 請使用 Home Assistant 的 [Mosquitto broker 插件](https://github.com/home-assistant/addons/blob/master/mosquitto/DOCS.md)，並填入 Home Assistant 的 IP。
+* 每個模組的 `slave_id` 必須對應你實際的 Modbus 設備站號。
 
 
 ---
 
 ## 🧠 本專案由 ChatGPT 協助撰寫與優化
 
-你可以放心使用此 README，未來亦可請 ChatGPT 協助擴充模組。
+本 README 內容由 [OpenAI ChatGPT](https://openai.com/chatgpt) 撰寫與調整，若你日後新增模組或擴充功能，也可以請 ChatGPT 幫你改寫。
 
 ---
 
-## 🇺🇸 English Version
+---
+
+## 🇺🇸 English Version: Modbus TCP ↔ MQTT Integration with Python & Docker
 
 # docker-compose-python-modbus-mqtt
 
-> 📦 Docker Compose Project: Python + Modbus TCP + MQTT
-> ✨ README generated and optimized by [ChatGPT](https://openai.com/chatgpt)
+> 📦 A lightweight Modbus TCP to MQTT integration via Python
+> ✨ README generated and refined by [ChatGPT](https://openai.com/chatgpt)
 
 ---
 
-## 📘 Introduction
+## 📘 Project Overview
 
-This project runs a lightweight Python container using `docker-compose`, enabling data acquisition from Modbus TCP devices and publishing to an MQTT broker (such as Home Assistant).
+This project uses `docker-compose` to run a minimal Python environment for:
+
+* Reading data from **Modbus TCP** devices
+* Publishing to an **MQTT Broker** (e.g., Home Assistant's Mosquitto add-on)
 
 Currently supported modules:
 
-* `module_switch.py`: Switch / relay control
-* `module_temp.py`: Temperature reading
+* `module_switch.py`: Relay / switch control
+* `module_temp.py`: Temperature reading 
 
 ---
 
@@ -118,7 +155,7 @@ pip install -r requirements.txt
 pip install paho-mqtt==2.1.0 pymodbus==3.5.0
 ```
 
-### 2️⃣ Launch the container
+### 2️⃣ Start the container
 
 ```bash
 docker compose up -d
@@ -130,21 +167,21 @@ docker compose up -d
 
 ```
 .
-├── docker-compose.yaml      # Docker Compose configuration
-├── Dockerfile               # Dockerfile for the Python image
-├── requirements.txt         # Required Python packages
+├── docker-compose.yaml      # Docker Compose file
+├── Dockerfile               # Docker build file
+├── requirements.txt         # Required packages
 └── app/
-    ├── main.py              # Main controller, loads modules
-    ├── module_switch.py     # Switch control module
-    └── module_temp.py       # Temperature module (disabled)
+    ├── main.py              # Main entrypoint and module loader
+    ├── module_switch.py     # Relay control module
+    ├── module_temp.py       # Temperature module 
+    └── modbus_mqtt_client.py# Shared Modbus & MQTT connection handler
 ```
 
 ---
 
-## ⚙️ Module Configuration
+## ⚙️ Module Configuration (in `main.py`)
 
-In `app/main.py`, the module control section:
-slave: your devicenumber
+Each module must be explicitly enabled and assigned a proper Modbus slave ID:
 
 ```python
 modules = {
@@ -153,19 +190,54 @@ modules = {
 }
 ```
 
-* `enable: True` → Enable the module (reads Modbus and publishes via MQTT)
-* `enable: False` → Disable the module
+* `enable: True` → Enables the module
+* `enable: False` → Disables the module
+* `slave_id` → Must match the Modbus slave address of your physical device
 
 ---
 
-## ❗ Note
+## 🔌 `modbus_mqtt_client.py` Usage
+
+### Purpose:
+
+* Central management of **Modbus TCP** and **MQTT** clients
+* Thread-safe, auto-reconnect logic
+* Provides shared MQTT client and Modbus client to all modules
+
+### MQTT Configuration
+
+```python
+# Broker = your Home Assistant IP with Mosquitto add-on installed
+MQTT_BROKER = 'your-home-assistant-ip'
+MQTT_PORT = 1883
+MQTT_USERNAME = 'mqtt'
+MQTT_PASSWORD = 'mqtt'
+```
+
+### Modbus Configuration
+
+```python
+MODBUS_HOST = 'your-modbus-gateway-ip'
+MODBUS_PORT = 502
+```
+
+> ✅ All communication settings are centralized in this file for easier adjustments.
+
+---
+
+## ❗ Important Notes
+
+* The MQTT Broker should be your **Home Assistant** Mosquitto add-on.
+* Make sure your module `slave_id` matches the actual slave ID of your Modbus devices.
 
 
 ---
 
 ## 🧠 README generated by ChatGPT
 
-This document was written and refined using ChatGPT to assist with clarity and formatting.
+This documentation was fully written and optimized using [ChatGPT](https://openai.com/chatgpt).
+Future updates or new modules can also be described and generated through ChatGPT.
 
 ---
 
+若你希望我直接幫你輸出為 `README.md` 檔案內容格式，請告訴我，我可以一次匯出完整檔案文字。
