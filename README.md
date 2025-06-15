@@ -3,8 +3,8 @@ docker compose run python:3.11-slim</br>
 install paho-mqtt==2.1.0 pymodbus==3.5.0</br>
 connect modbus gateway and to mqtt</br>
 
-app/main.py 
-enable:True enable module
-enable:False disable module
+app/main.py </br>
+enable:True enable module</br>
+enable:False disable module</br>
 
 
