@@ -1,1 +1,13 @@
-
+#version: '3.8'
+services:
+  modbus_app:
+    build: .
+    container_name: modbus_app
+    restart: always
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./app:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    network_mode: bridge
