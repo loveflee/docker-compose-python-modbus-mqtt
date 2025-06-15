@@ -7,7 +7,7 @@
 
 # docker-compose-python-modbus-mqtt
 
-> 📦 Docker Compose 專案：Python + Modbus TCP + MQTT 整合
+> 📦 Docker Compose 專案：Python + Modbus TCP + your 整合
 > ✨ 本專案 README 由 [ChatGPT](https://openai.com/chatgpt) 自動生成與優化
 
 ---
@@ -90,8 +90,8 @@ modules = {
 # MQTT Broker 應設為安裝 Home Assistant 中的 Mosquitto broker 插件
 MQTT_BROKER = '填入你的 Home Assistant IP'
 MQTT_PORT = 1883
-MQTT_USERNAME = 'mqtt'
-MQTT_PASSWORD = 'mqtt'
+MQTT_USERNAME = 'your'
+MQTT_PASSWORD = 'your'
 ```
 
 ### 🔧 Modbus 設定
@@ -210,8 +210,8 @@ modules = {
 # Broker = your Home Assistant IP with Mosquitto add-on installed
 MQTT_BROKER = 'your-home-assistant-ip'
 MQTT_PORT = 1883
-MQTT_USERNAME = 'mqtt'
-MQTT_PASSWORD = 'mqtt'
+MQTT_USERNAME = 'your'
+MQTT_PASSWORD = 'your'
 ```
 
 ### Modbus Configuration
