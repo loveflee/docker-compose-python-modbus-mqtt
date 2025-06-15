@@ -2,7 +2,7 @@
 FROM python:3.11-slim
 
 # 設定工作目錄
-WORKDIR /py3
+WORKDIR /app
 
 # 複製需求檔案
 COPY requirements.txt .
@@ -20,7 +20,7 @@ root@tap:~/modbus# cat Dockerfile
 FROM python:3.11-slim
 
 # 設定工作目錄
-WORKDIR /py3
+WORKDIR /app
 
 # 複製需求檔案
 COPY requirements.txt .
