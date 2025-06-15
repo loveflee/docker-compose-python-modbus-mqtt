@@ -15,7 +15,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # 預設執行指令
 CMD ["python", "main.py"]
-root@tap:~/modbus# cat Dockerfile
+
 # 使用官方 Python 映像
 FROM python:3.11-slim
 
