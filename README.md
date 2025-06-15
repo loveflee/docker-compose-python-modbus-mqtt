@@ -42,6 +42,8 @@ see docker log
 ```bash
 docker compose logs
 ```
+## 啟用,停用,新增模組只需重啟容器
+## To enable, disable, or add new modules, just restart the container
 ---
 
 ## 📁 專案結構
@@ -118,6 +120,9 @@ MODBUS_PORT = 502
 
 本 README 內容由 [OpenAI ChatGPT](https://openai.com/chatgpt) 撰寫與調整，若你日後新增模組或擴充功能，也可以請 ChatGPT 幫你改寫。
 
+```bash
+docker compose restart
+```
 ---
 
 ---
@@ -150,7 +155,7 @@ Currently supported modules:
 ### 1️⃣ Install Python packages (inside container)
 
 ```bash
-docker compose build
+docker compose build;docker compose up -d
 ```
 
 ### 2️⃣ Start the container
@@ -159,9 +164,12 @@ docker compose build
 docker compose up -d
 ```
 see docker log
-
 ```bash
 docker compose logs
+```
+## To enable, disable, or add new modules, just restart the container
+```bash
+docker compose restart
 ```
 
 ---
