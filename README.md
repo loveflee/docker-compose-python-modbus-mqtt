@@ -26,7 +26,7 @@
 
 ## 🚀 快速啟動
 
-### 1️⃣ 安裝 Python 套件（於 Docker 內部執行）
+### 1️⃣ 使用 docker 構建 Python3.11
 
 ```bash
 docker compose build;
